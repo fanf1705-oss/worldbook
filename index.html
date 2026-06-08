@@ -793,41 +793,9 @@ function toggleApi() {
 
 // ===== FETCH MODELS =====
 async function fetchModels() {
-  const base = getBaseUrl();
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) { showError('请先填写 API Key'); return; }
-
   const sel = document.getElementById('modelSelect');
-  sel.innerHTML = '<option value="">拉取中…</option>';
-
-  try {
-    const res = await fetch(`${base}/v1/models`, {
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01'
-      }
-    });
-    const data = await res.json();
-    const models = (data.data || []).filter(m => m.id && (m.id.includes('claude') || m.id.includes('gpt') || m.id.includes('gemini') || m.id.includes('deepseek')));
-
-    if (models.length === 0) {
-      // 如果拉取为空，填入常用模型
-      fillDefaultModels(sel);
-    } else {
-      sel.innerHTML = '';
-      models.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.id;
-        opt.textContent = m.id;
-        sel.appendChild(opt);
-      });
-    }
-
-    updateApiStatus(true);
-  } catch(e) {
-    fillDefaultModels(sel);
-    updateApiStatus(false);
-  }
+  fillDefaultModels(sel);
+  updateApiStatus(true);
 }
 
 function fillDefaultModels(sel) {
@@ -1028,6 +996,8 @@ function buildPrompt(entries) {
 }
 
 function parseResult(text) {
+  // 先去掉所有markdown代码块包裹
+  text = text.replace(/^```[a-zA-Z]*\s*/g, "").replace(/```$/g, "").trim();
   try {
     const clean = text.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();
     return JSON.parse(clean);
@@ -1175,6 +1145,9 @@ addWbCard();
 
 // 默认展开API面板
 toggleApi();
+
+// 自动填入模型列表，无需拉取
+fillDefaultModels(document.getElementById('modelSelect'));
 </script>
 </body>
 </html>
