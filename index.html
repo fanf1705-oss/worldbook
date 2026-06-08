@@ -996,6 +996,13 @@ function buildPrompt(entries) {
 }
 
 function parseResult(text) {
+  text = text.replace(/```json/g,"").replace(/```/g,"").trim();
+  try { return JSON.parse(text); } catch(e) {}
+  const m = text.match(/\{[\s\S]+\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch(e2) {} }
+  throw new Error("无法解析AI返回的JSON，请重试。原始内容：" + text.substring(0,200));
+}
+function parseResult_OLD(text) {
   // 先去掉所有markdown代码块包裹
   text = text.replace(/^```[a-zA-Z]*\s*/g, "").replace(/```$/g, "").trim();
   try {
